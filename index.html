@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cute Pastel Photobooth 🎀</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #fdf2f8; font-family: 'Segoe UI', sans-serif; }
+        .pink-gradient { background: linear-gradient(135deg, #fbcfe8, #f9a8d4); }
+        .video-box { transform: scaleX(-1); }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="max-w-md w-full bg-white p-6 rounded-3xl shadow-2xl border-4 border-pink-200 text-center">
+        <h1 class="text-3xl font-bold text-pink-500 mb-2 tracking-tight">Selfie Time! 🌸</h1>
+        <p class="text-xs text-pink-400 mb-4">Pilih gaya kolase kesukaanmu & abadikan momen terbaikmu!</p>
+        
+        <!-- Pilihan Layout Kolase -->
+        <div class="mb-4 text-left">
+            <label class="block text-xs font-semibold text-pink-600 mb-1">Pilih Layout Kolase:</label>
+            <select id="layout-select" class="w-full p-2.5 rounded-xl border border-pink-200 text-pink-600 bg-pink-50/50 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300">
+                <option value="strip4">Classic Strip (4 Pose Vertikal)</option>
+                <option value="grid4">Sweet Grid (4 Pose 2x2)</option>
+                <option value="triple3">Minimalist Trio (3 Pose)</option>
+            </select>
+        </div>
+
+        <!-- Pilihan Filter -->
+        <div class="mb-4 text-left">
+            <label class="block text-xs font-semibold text-pink-600 mb-1">Pilih Filter Warna:</label>
+            <select id="filter-select" class="w-full p-2.5 rounded-xl border border-pink-200 text-pink-600 bg-pink-50/50 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300">
+                <option value="none">Normal (Natural)</option>
+                <option value="sepia(40%)">Vintage Warm</option>
+                <option value="grayscale(100%)">Classic B&W</option>
+                <option value="brightness(110%) saturate(140%)">Cute Bright ✨</option>
+            </select>
+        </div>
+
+        <!-- Area Kamera / Live Preview -->
+        <div class="relative overflow-hidden rounded-2xl bg-black aspect-[3/4] mb-4 shadow-inner">
+            <video id="video" autoplay playsinline class="video-box w-full h-full object-cover"></video>
+            <div id="countdown" class="absolute inset-0 flex items-center justify-center text-7xl font-black text-white drop-shadow-md hidden bg-pink-500/30 backdrop-blur-[2px]">3</div>
+        </div>
+
+        <!-- Tombol Mulai -->
+        <button id="start-btn" onclick="startPhotobooth()" class="w-full pink-gradient hover:opacity-90 text-white font-bold py-4 rounded-2xl transition shadow-lg text-lg">
+            Mulai Foto 📸
+        </button>
+
+        <!-- Area Hasil Foto & Tombol Download (Hidden Awalnya) -->
+        <div id="result-area" class="hidden mt-6 pt-4 border-t-2 border-pink-100">
+            <h2 class="text-md font-bold text-pink-500 mb-3">Yey! Hasil Fotomu Udah Jadi ✨</h2>
+            <div class="bg-pink-50 p-3 rounded-2xl border border-pink-200 mb-4 flex justify-center">
+                <img id="final-image" class="max-h-80 rounded-xl shadow-md border border-pink-100">
+            </div>
+            <a id="download-link" class="block w-full bg-pink-500 text-white py-3 rounded-xl font-bold hover:bg-pink-600 transition shadow-md text-center">
+                Download Hasil Foto 🎀
+            </a>
+            <button onclick="resetPhotobooth()" class="mt-2 text-xs text-pink-400 hover:text-pink-600 underline">
+                Foto Ulang
+            </button>
+        </div>
+    </div>
+
+    <!-- Canvas tersembunyi untuk proses gambar -->
+    <canvas id="canvas" class="hidden"></canvas>
+
+    <script>
+        const video = document.getElementById('video');
+        const countdownEl = document.getElementById('countdown');
+        const startBtn = document.getElementById('start-btn');
+        const resultArea = document.getElementById('result-area');
+        const finalImage = document.getElementById('final-image');
+        const downloadLink = document.getElementById('download-link');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Nyalakan Kamera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(s => video.srcObject = s)
+            .catch(err => alert("Tidak dapat mengakses kamera! Pastikan izin kamera diaktifkan."));
+
+        async function startPhotobooth() {
+            const layout = document.getElementById('layout-select').value;
+            let totalPhotos = (layout === 'triple3') ? 3 : 4;
+
+            startBtn.disabled = true;
+            startBtn.textContent = "Bersiap ya... 💖";
+            resultArea.classList.add('hidden');
+            
+            let photos = [];
+            for (let i = 0; i < totalPhotos; i++) {
+                await runCountdown();
+                photos.push(capturePhoto());
+            }
+
+            generateCollage(photos, layout);
+            startBtn.disabled = false;
+            startBtn.textContent = "Mulai Foto 📸";
+        }
+
+        function runCountdown() {
+            return new Promise(resolve => {
+                let count = 3;
+                countdownEl.classList.remove('hidden');
+                countdownEl.textContent = count;
+                
+                let timer = setInterval(() => {
+                    count--;
+                    if (count > 0) {
+                        countdownEl.textContent = count;
+                    } else {
+                        clearInterval(timer);
+                        countdownEl.classList.add('hidden');
+                        resolve();
+                    }
+                }, 1000);
+            });
+        }
+
+        function capturePhoto() {
+            let c = document.createElement('canvas');
+            c.width = 640; c.height = 480;
+            let context = c.getContext('2d');
+            context.filter = document.getElementById('filter-select').value;
+            context.translate(c.width, 0); 
+            context.scale(-1, 1);
+            context.drawImage(video, 0, 0, c.width, c.height);
+            return c;
+        }
+
+        function generateCollage(photos, layout) {
+            if (layout === 'strip4') {
+                // --- FORMAT 1: Classic Strip (4 Pose Vertikal) ---
+                canvas.width = 600; canvas.height = 1800;
+                ctx.fillStyle = "#fff1f2"; // Background soft pink pastel
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                photos.forEach((p, i) => {
+                    ctx.drawImage(p, 40, 40 + (i * 430), 520, 390);
+                });
+
+                ctx.fillStyle = "#ec4899";
+                ctx.font = "bold 26px 'Segoe UI'";
+                ctx.textAlign = "center";
+                ctx.fillText("✨ Selfie Time! ✨", 300, 1760);
+
+            } else if (layout === 'grid4') {
+                // --- FORMAT 2: Sweet Grid (4 Pose Kotak 2x2) ---
+                canvas.width = 1000; canvas.height = 1000;
+                ctx.fillStyle = "#fff1f2";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Grid 2 kolom x 2 baris
+                let coords = [
+                    {x: 60, y: 60},   {x: 520, y: 60},
+                    {x: 60, y: 520},  {x: 520, y: 520}
+                ];
+
+                photos.forEach((p, i) => {
+                    ctx.drawImage(p, coords[i].x, coords[i].y, 420, 315);
+                });
+
+                ctx.fillStyle = "#ec4899";
+                ctx.font = "bold 28px 'Segoe UI'";
+                ctx.textAlign = "center";
+                ctx.fillText("🌸 Sweet Moments 🌸", 500, 930);
+
+            } else if (layout === 'triple3') {
+                // --- FORMAT 3: Minimalist Trio (3 Pose Vertikal Elegan) ---
+                canvas.width = 600; canvas.height = 1400;
+                ctx.fillStyle = "#fff1f2";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                photos.forEach((p, i) => {
+                    ctx.drawImage(p, 50, 50 + (i * 410), 500, 375);
+                });
+
+                ctx.fillStyle = "#ec4899";
+                ctx.font = "bold 24px 'Segoe UI'";
+                ctx.textAlign = "center";
+                ctx.fillText("💕 Memories 💕", 300, 1350);
+            }
+
+            // Tampilkan hasil preview ke layar
+            const dataUrl = canvas.toDataURL('image/png');
+            finalImage.src = dataUrl;
+            downloadLink.href = dataUrl;
+            downloadLink.download = 'my-cute-photobooth.png';
+            
+            resultArea.classList.remove('hidden');
+            resultArea.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function resetPhotobooth() {
+            resultArea.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
