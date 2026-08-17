@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photobooth By Tamz 🎀 Pro Edition</title>
+    <title>Photobooth By Tamz 🎀 Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #fdf2f8; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .pink-gradient { background: linear-gradient(135deg, #fbcfe8, #f9a8d4); }
         .video-box { 
-            transform: scaleX(-1) scale(0.68); 
-            transform-origin: center;
+            transform: scaleX(-1); 
         }
         .photo-card.selected {
-            border: 4px solid #ec4899;
-            transform: scale(0.96);
+            border: 4px solid #ec4899 !important;
+            transform: scale(0.95);
             box-shadow: 0 10px 15px -3px rgba(236, 72, 153, 0.4);
         }
     </style>
@@ -23,27 +22,33 @@
 
     <div class="max-w-md w-full bg-white p-6 rounded-3xl shadow-2xl border-4 border-pink-200 text-center">
         <h1 class="text-3xl font-bold text-pink-500 mb-1 tracking-tight">Photobooth By Tamz ✨</h1>
-        <p class="text-xs text-pink-400 mb-4">Pro Edition: Ambil 12 Foto & Pilih Favoritmu!</p>
+        <p class="text-xs text-pink-400 mb-4">Ambil 12 Foto, Pilih Favoritmu & Kreasikan Kolasenya!</p>
         
-        <!-- STEP 1: PENGATURAN KAMERA -->
-        <div id="setup-section" class="mb-3 text-left">
-            <label class="block text-xs font-semibold text-pink-600 mb-1">Pilih Kamera:</label>
-            <select id="camera-select" onchange="changeCamera()" class="w-full p-2.5 rounded-xl border border-pink-200 text-pink-600 bg-pink-50/50 text-sm focus:outline-none mb-2">
-                <option value="">Mencari kamera...</option>
-            </select>
+        <!-- STEP 1: PENGATURAN KAMERA & LAYOUT -->
+        <div id="setup-section" class="text-left">
+            <div class="mb-3">
+                <label class="block text-xs font-semibold text-pink-600 mb-1">Pilih Jumlah Bingkai Kolase:</label>
+                <select id="layout-select" class="w-full p-2.5 rounded-xl border border-pink-200 text-pink-600 bg-pink-50/50 text-sm focus:outline-none">
+                    <option value="4">Grid 4 Foto (Classic Strip)</option>
+                    <option value="6">Grid 6 Foto (Extended Strip)</option>
+                    <option value="8">Grid 8 Foto (Mega Booth)</option>
+                </select>
+            </div>
 
-            <label class="block text-xs font-semibold text-pink-600 mb-1">Pilih Filter Kamera:</label>
-            <select id="filter-select" class="w-full p-2.5 rounded-xl border border-pink-200 text-pink-600 bg-pink-50/50 text-sm focus:outline-none mb-4">
-                <option value="none">Normal (Natural)</option>
-                <option value="sepia(40%)">Vintage Warm</option>
-                <option value="grayscale(100%)">Classic B&W</option>
-                <option value="brightness(110%) saturate(140%)">Cute Bright ✨</option>
-            </select>
+            <div class="mb-3">
+                <label class="block text-xs font-semibold text-pink-600 mb-1">Pilih Filter Kamera:</label>
+                <select id="filter-select" class="w-full p-2.5 rounded-xl border border-pink-200 text-pink-600 bg-pink-50/50 text-sm focus:outline-none">
+                    <option value="none">Normal (Natural)</option>
+                    <option value="sepia(40%)">Vintage Warm</option>
+                    <option value="grayscale(100%)">Classic B&W</option>
+                    <option value="brightness(110%) saturate(140%)">Cute Bright ✨</option>
+                </select>
+            </div>
 
             <!-- Area Live Preview Kamera -->
             <div class="relative overflow-hidden rounded-2xl bg-gray-900 aspect-[3/4] mb-4 shadow-inner flex items-center justify-center">
-                <video id="video" autoplay playsinline class="w-full h-full object-contain video-box"></video>
-                <div id="countdown" class="absolute inset-0 flex items-center justify-center text-7xl font-black text-white drop-shadow-md hidden bg-pink-500/30 backdrop-blur-[2px]">3</div>
+                <video id="video" autoplay playsinline muted class="w-full h-full object-cover video-box"></video>
+                <div id="countdown" class="absolute inset-0 flex items-center justify-center text-7xl font-black text-white drop-shadow-md hidden bg-pink-500/40 backdrop-blur-[2px]">3</div>
                 <div id="shoot-counter" class="absolute top-3 right-3 bg-pink-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow hidden">Foto ke-1 / 12</div>
             </div>
 
@@ -56,10 +61,10 @@
         <div id="selection-section" class="hidden text-left">
             <div class="bg-pink-50 p-3 rounded-2xl border border-pink-100 mb-3">
                 <h2 class="text-sm font-bold text-pink-600 text-center">Pilih Foto Favoritmu! 💖</h2>
-                <p id="selection-instruction" class="text-[11px] text-pink-400 text-center mb-2">Pilih tepat <span id="target-count" class="font-bold">4</span> foto dari 12 jepretan.</p>
+                <p class="text-[11px] text-pink-400 text-center mb-2">Pilih tepat <span id="target-count" class="font-bold">4</span> foto dari 12 jepretan.</p>
                 
                 <!-- Grid 12 Foto Hasil Jepretan -->
-                <div id="photos-grid" class="grid grid-cols-3 gap-2 max-h-72 overflow-y-auto p-1">
+                <div id="photos-grid" class="grid grid-cols-3 gap-2 max-h-72 overflow-y-auto p-1 bg-white rounded-xl border border-pink-100">
                     <!-- Dynamic generated photos -->
                 </div>
             </div>
@@ -67,24 +72,15 @@
             <button id="generate-collage-btn" onclick="generateCollage()" disabled class="w-full bg-gray-300 text-gray-500 font-bold py-3 rounded-xl transition shadow text-sm mb-2 cursor-not-allowed">
                 Buat Kolase Sekarang ✨
             </button>
-            <button onclick="restartSession()" class="w-full text-xs text-pink-400 hover:text-pink-600 py-1 underline">
+            <button onclick="restartSession()" class="w-full text-xs text-pink-400 hover:text-pink-600 py-1 underline text-center block">
                 Ulangi Sesi Foto
             </button>
         </div>
 
         <!-- STEP 3: HASIL KOLASE & EDITING AKHIR -->
         <div id="edit-area" class="hidden text-left">
-            <h2 class="text-md font-bold text-pink-500 mb-2 text-center">Atur Bingkai & Asesoris 🎨</h2>
+            <h2 class="text-md font-bold text-pink-500 mb-2 text-center">Atur Warna & Asesoris 🎨</h2>
             
-            <div class="mb-2">
-                <label class="block text-xs font-semibold text-pink-600 mb-1">Pilih Jumlah Bingkai & Tata Letak:</label>
-                <select id="layout-select" onchange="updatePreview()" class="w-full p-2.5 rounded-xl border border-pink-200 text-pink-600 bg-pink-50/50 text-sm focus:outline-none">
-                    <option value="4">Grid 4 Foto (Classic Strip)</option>
-                    <option value="6">Grid 6 Foto (Extended Strip)</option>
-                    <option value="8">Grid 8 Foto (Mega Booth)</option>
-                </select>
-            </div>
-
             <div class="mb-2">
                 <label class="block text-xs font-semibold text-pink-600 mb-1">Pilih Warna Background:</label>
                 <select id="bg-color-select" onchange="updatePreview()" class="w-full p-2.5 rounded-xl border border-pink-200 text-pink-600 bg-pink-50/50 text-sm focus:outline-none">
@@ -112,14 +108,14 @@
             </div>
 
             <div class="bg-pink-50 p-2 rounded-2xl border border-pink-200 mb-3 flex justify-center">
-                <img id="final-image" class="max-h-72 rounded-xl shadow-md border border-pink-100 object-contain">
+                <img id="final-image" class="max-h-64 rounded-xl shadow-md border border-pink-100 object-contain">
             </div>
 
             <a id="download-link" class="block w-full bg-pink-500 text-white py-3 rounded-xl font-bold hover:bg-pink-600 transition shadow-md text-center mb-2">
                 Download Hasil Foto 🎀
             </a>
-            <button onclick="backToSelection()" class="w-full text-xs text-pink-400 hover:text-pink-600 py-1 underline">
-                Pilih Ulang Foto / Ganti Layout
+            <button onclick="backToSelection()" class="w-full text-xs text-pink-400 hover:text-pink-600 py-1 underline text-center block">
+                Pilih Ulang Foto
             </button>
         </div>
     </div>
@@ -134,7 +130,7 @@
         const setupSection = document.getElementById('setup-section');
         const selectionSection = document.getElementById('selection-section');
         const editArea = document.getElementById('edit-area');
-        const cameraSelect = document.getElementById('camera-select');
+        const layoutSelect = document.getElementById('layout-select');
         const photosGrid = document.getElementById('photos-grid');
         const targetCountEl = document.getElementById('target-count');
         const generateCollageBtn = document.getElementById('generate-collage-btn');
@@ -147,54 +143,24 @@
         let selectedIndices = [];
         let currentStream = null;
 
-        async function getCameras() {
+        // Inisialisasi Kamera Depan HP
+        async function initCamera() {
             try {
-                const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
-                tempStream.getTracks().forEach(track => track.stop());
-
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                const videoDevices = devices.filter(device => device.kind === 'videoinput');
-                
-                cameraSelect.innerHTML = '';
-                videoDevices.forEach((device, index) => {
-                    const option = document.createElement('option');
-                    option.value = device.deviceId;
-                    option.text = device.label || `Kamera ${index + 1}`;
-                    cameraSelect.appendChild(option);
-                });
-
-                if (videoDevices.length > 0) {
-                    initCamera(videoDevices[0].deviceId);
+                if (currentStream) {
+                    currentStream.getTracks().forEach(track => track.stop());
                 }
-            } catch (err) {
-                alert("Gagal mendeteksi kamera: " + err.message);
-            }
-        }
-
-        async function initCamera(deviceId) {
-            if (currentStream) {
-                currentStream.getTracks().forEach(track => track.stop());
-            }
-            try {
-                const constraints = {
-                    video: { 
-                        deviceId: deviceId ? { exact: deviceId } : undefined,
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    }
-                };
-                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                currentStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: false
+                });
                 video.srcObject = currentStream;
             } catch (err) {
-                console.error("Error opening camera:", err);
+                alert("Mohon izinkan akses kamera di browser Anda (Pastikan buka lewat HTTPS/GitHub). Error: " + err.message);
             }
         }
 
-        function changeCamera() {
-            initCamera(cameraSelect.value);
-        }
-
-        getCameras();
+        // Jalankan kamera pas halaman kebuka
+        initCamera();
 
         // 12 Kali Jepret Beruntun
         async function startPhotoSession() {
@@ -249,7 +215,7 @@
             photosGrid.innerHTML = '';
             selectedIndices = [];
             
-            let requiredCount = parseInt(document.getElementById('layout-select').value) || 4;
+            let requiredCount = parseInt(layoutSelect.value);
             targetCountEl.textContent = requiredCount;
 
             allCapturedPhotos.forEach((photoCanvas, idx) => {
@@ -263,14 +229,14 @@
         }
 
         function toggleSelectPhoto(index, element) {
-            let requiredCount = parseInt(document.getElementById('layout-select').value);
+            let requiredCount = parseInt(layoutSelect.value);
             
             if (selectedIndices.includes(index)) {
                 selectedIndices = selectedIndices.filter(i => i !== index);
                 element.classList.remove('selected');
             } else {
                 if (selectedIndices.length >= requiredCount) {
-                    alert(`Maksimal hanya boleh memilih ${requiredCount} foto sesuai bingkai yang aktif!`);
+                    alert(`Maksimal hanya boleh memilih ${requiredCount} foto sesuai bingkai yang Anda tentukan!`);
                     return;
                 }
                 selectedIndices.push(index);
@@ -279,20 +245,8 @@
             validateSelection();
         }
 
-        // Update target saat user ganti layout pilihan di tahap seleksi
-        document.getElementById('layout-select').addEventListener('change', (e) => {
-            let newReq = parseInt(e.target.value);
-            targetCountEl.textContent = newReq;
-            // Reset pilihan jika melebihi batas baru
-            if (selectedIndices.length > newReq) {
-                selectedIndices = [];
-                document.querySelectorAll('.photo-card').forEach(el => el.classList.remove('selected'));
-            }
-            validateSelection();
-        });
-
         function validateSelection() {
-            let requiredCount = parseInt(document.getElementById('layout-select').value);
+            let requiredCount = parseInt(layoutSelect.value);
             if (selectedIndices.length === requiredCount) {
                 generateCollageBtn.disabled = false;
                 generateCollageBtn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
@@ -315,20 +269,17 @@
         function updatePreview() {
             if (selectedIndices.length === 0) return;
 
-            const layoutCount = parseInt(document.getElementById('layout-select').value);
+            const layoutCount = parseInt(layoutSelect.value);
             const bgColor = document.getElementById('bg-color-select').value;
             const accessory = document.getElementById('accessory-select').value;
 
-            // Sesuaikan tinggi canvas berdasarkan jumlah foto
             let canvasHeight = layoutCount === 8 ? 3200 : (layoutCount === 6 ? 2450 : 1850);
             canvas.width = 600; 
             canvas.height = canvasHeight;
 
-            // Background Utama Strip
             ctx.fillStyle = bgColor;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Kotak Bingkai Tengah
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(30, 30, 540, canvas.height - 60);
 
@@ -337,7 +288,6 @@
             let photoH = 360;
             let xOffset = 60;
 
-            // Render Foto yang dipilih
             selectedIndices.forEach((photoIdx, i) => {
                 let p = allCapturedPhotos[photoIdx];
                 ctx.save();
@@ -348,7 +298,6 @@
                 ctx.restore();
             });
 
-            // Footer Teks di bagian paling bawah strip
             let textY = canvas.height - 130;
             ctx.fillStyle = "#db2777";
             ctx.font = "bold 22px 'Segoe UI'";
@@ -359,7 +308,6 @@
             ctx.fillStyle = "#888888";
             ctx.fillText("Special Memories • 2026", 300, textY + 35);
 
-            // Asesoris / Stiker Hiasan
             if (accessory === 'ribbon') {
                 ctx.font = "35px sans-serif";
                 ctx.fillText("🎀", 70, 70);
@@ -403,6 +351,7 @@
             setupSection.classList.remove('hidden');
             startBtn.disabled = false;
             startBtn.textContent = "Mulai 12x Jepret Foto 📸";
+            initCamera();
         }
     </script>
 </body>
