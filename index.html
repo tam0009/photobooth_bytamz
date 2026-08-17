@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cute Pastel Photobooth 🎀</title>
+    <title>Pro Photobooth Studio 🎀</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #fdf2f8; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #fdf2f8; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .pink-gradient { background: linear-gradient(135deg, #fbcfe8, #f9a8d4); }
         .video-box { transform: scaleX(-1); }
     </style>
@@ -14,22 +14,12 @@
 <body class="flex flex-col items-center justify-center min-h-screen p-4">
 
     <div class="max-w-md w-full bg-white p-6 rounded-3xl shadow-2xl border-4 border-pink-200 text-center">
-        <h1 class="text-3xl font-bold text-pink-500 mb-2 tracking-tight">Selfie Time! 🌸</h1>
-        <p class="text-xs text-pink-400 mb-4">Pilih gaya kolase kesukaanmu & abadikan momen terbaikmu!</p>
+        <h1 class="text-3xl font-bold text-pink-500 mb-2 tracking-tight">Selfie Time Studio ✨</h1>
+        <p class="text-xs text-pink-400 mb-4">Abadikan posemu, lalu pilih bingkai & asesoris sesukamu!</p>
         
-        <!-- Pilihan Layout Kolase -->
-        <div class="mb-4 text-left">
-            <label class="block text-xs font-semibold text-pink-600 mb-1">Pilih Layout Kolase:</label>
-            <select id="layout-select" class="w-full p-2.5 rounded-xl border border-pink-200 text-pink-600 bg-pink-50/50 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300">
-                <option value="strip4">Classic Strip (4 Pose Vertikal)</option>
-                <option value="grid4">Sweet Grid (4 Pose 2x2)</option>
-                <option value="triple3">Minimalist Trio (3 Pose)</option>
-            </select>
-        </div>
-
-        <!-- Pilihan Filter -->
-        <div class="mb-4 text-left">
-            <label class="block text-xs font-semibold text-pink-600 mb-1">Pilih Filter Warna:</label>
+        <!-- Filter Warna (Dipilih Sebelum Foto) -->
+        <div id="capture-controls" class="mb-4 text-left">
+            <label class="block text-xs font-semibold text-pink-600 mb-1">Pilih Filter Kamera:</label>
             <select id="filter-select" class="w-full p-2.5 rounded-xl border border-pink-200 text-pink-600 bg-pink-50/50 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300">
                 <option value="none">Normal (Natural)</option>
                 <option value="sepia(40%)">Vintage Warm</option>
@@ -44,61 +34,87 @@
             <div id="countdown" class="absolute inset-0 flex items-center justify-center text-7xl font-black text-white drop-shadow-md hidden bg-pink-500/30 backdrop-blur-[2px]">3</div>
         </div>
 
-        <!-- Tombol Mulai -->
+        <!-- Tombol Mulai Foto -->
         <button id="start-btn" onclick="startPhotobooth()" class="w-full pink-gradient hover:opacity-90 text-white font-bold py-4 rounded-2xl transition shadow-lg text-lg">
-            Mulai Foto 📸
+            Mulai Foto (4 Pose) 📸
         </button>
 
-        <!-- Area Hasil Foto & Tombol Download (Hidden Awalnya) -->
-        <div id="result-area" class="hidden mt-6 pt-4 border-t-2 border-pink-100">
-            <h2 class="text-md font-bold text-pink-500 mb-3">Yey! Hasil Fotomu Udah Jadi ✨</h2>
+        <!-- Area Sesi Edit & Pilih Bingkai (Muncul Setelah Foto Selesai) -->
+        <div id="edit-area" class="hidden mt-6 pt-4 border-t-2 border-pink-100 text-left">
+            <h2 class="text-md font-bold text-pink-500 mb-3 text-center">Sesi Edit & Styling 🎨</h2>
+            
+            <div class="mb-3">
+                <label class="block text-xs font-semibold text-pink-600 mb-1">Pilih Tema Bingkai:</label>
+                <select id="theme-select" onchange="updatePreview()" class="w-full p-2.5 rounded-xl border border-pink-200 text-pink-600 bg-pink-50/50 text-sm focus:outline-none">
+                    <option value="vintage">Brown Vintage (Ala Toko Buku)</option>
+                    <option value="pastel">Soft Pink Pastel</option>
+                    <option value="dark">Dark Aesthetic</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-xs font-semibold text-pink-600 mb-1">Tambah Asesoris/Stiker:</label>
+                <select id="accessory-select" onchange="updatePreview()" class="w-full p-2.5 rounded-xl border border-pink-200 text-pink-600 bg-pink-50/50 text-sm focus:outline-none">
+                    <option value="ribbon">Pita & Hati Lucu (🎀)</option>
+                    <option value="stars">Bintang Berkilau (⭐)</option>
+                    <option value="none">Tanpa Stiker</option>
+                </select>
+            </div>
+
+            <!-- Preview Hasil -->
             <div class="bg-pink-50 p-3 rounded-2xl border border-pink-200 mb-4 flex justify-center">
                 <img id="final-image" class="max-h-80 rounded-xl shadow-md border border-pink-100">
             </div>
-            <a id="download-link" class="block w-full bg-pink-500 text-white py-3 rounded-xl font-bold hover:bg-pink-600 transition shadow-md text-center">
+
+            <a id="download-link" class="block w-full bg-pink-500 text-white py-3 rounded-xl font-bold hover:bg-pink-600 transition shadow-md text-center mb-2">
                 Download Hasil Foto 🎀
             </a>
-            <button onclick="resetPhotobooth()" class="mt-2 text-xs text-pink-400 hover:text-pink-600 underline">
-                Foto Ulang
+            <button onclick="resetPhotobooth()" class="w-full text-xs text-pink-400 hover:text-pink-600 py-2 underline">
+                Foto Ulang dari Awal
             </button>
         </div>
     </div>
 
-    <!-- Canvas tersembunyi untuk proses gambar -->
+    <!-- Canvas Tersembunyi -->
     <canvas id="canvas" class="hidden"></canvas>
 
     <script>
         const video = document.getElementById('video');
         const countdownEl = document.getElementById('countdown');
         const startBtn = document.getElementById('start-btn');
-        const resultArea = document.getElementById('result-area');
+        const editArea = document.getElementById('edit-area');
+        const captureControls = document.getElementById('capture-controls');
         const finalImage = document.getElementById('final-image');
         const downloadLink = document.getElementById('download-link');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
 
+        let capturedPhotos = [];
+
         // Nyalakan Kamera
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(s => video.srcObject = s)
-            .catch(err => alert("Tidak dapat mengakses kamera! Pastikan izin kamera diaktifkan."));
+            .catch(err => alert("Tidak dapat mengakses kamera!"));
 
         async function startPhotobooth() {
-            const layout = document.getElementById('layout-select').value;
-            let totalPhotos = (layout === 'triple3') ? 3 : 4;
-
             startBtn.disabled = true;
             startBtn.textContent = "Bersiap ya... 💖";
-            resultArea.classList.add('hidden');
+            editArea.classList.add('hidden');
+            captureControls.classList.add('hidden');
             
-            let photos = [];
-            for (let i = 0; i < totalPhotos; i++) {
+            capturedPhotos = [];
+            for (let i = 0; i < 4; i++) {
                 await runCountdown();
-                photos.push(capturePhoto());
+                capturedPhotos.push(capturePhoto());
             }
 
-            generateCollage(photos, layout);
+            // Masuk ke Sesi Edit
+            updatePreview();
             startBtn.disabled = false;
-            startBtn.textContent = "Mulai Foto 📸";
+            startBtn.textContent = "Mulai Foto (4 Pose) 📸";
+            captureControls.classList.remove('hidden');
+            editArea.classList.remove('hidden');
+            editArea.scrollIntoView({ behavior: 'smooth' });
         }
 
         function runCountdown() {
@@ -131,71 +147,75 @@
             return c;
         }
 
-        function generateCollage(photos, layout) {
-            if (layout === 'strip4') {
-                // --- FORMAT 1: Classic Strip (4 Pose Vertikal) ---
-                canvas.width = 600; canvas.height = 1800;
-                ctx.fillStyle = "#fff1f2"; // Background soft pink pastel
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+        function updatePreview() {
+            if (capturedPhotos.length === 0) return;
 
-                photos.forEach((p, i) => {
-                    ctx.drawImage(p, 40, 40 + (i * 430), 520, 390);
-                });
+            const theme = document.getElementById('theme-select').value;
+            const accessory = document.getElementById('accessory-select').value;
 
-                ctx.fillStyle = "#ec4899";
-                ctx.font = "bold 26px 'Segoe UI'";
-                ctx.textAlign = "center";
-                ctx.fillText("✨ Selfie Time! ✨", 300, 1760);
+            // Ukuran Strip Photobooth Klasik (Vertikal 4 Foto)
+            canvas.width = 600; 
+            canvas.height = 1850;
 
-            } else if (layout === 'grid4') {
-                // --- FORMAT 2: Sweet Grid (4 Pose Kotak 2x2) ---
-                canvas.width = 1000; canvas.height = 1000;
-                ctx.fillStyle = "#fff1f2";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // 1. Warna Background / Tema Bingkai
+            if (theme === 'vintage') {
+                ctx.fillStyle = "#3e2723"; // Coklat ala Studio Foto / Bookstore
+            } else if (theme === 'pastel') {
+                ctx.fillStyle = "#fff1f2"; // Soft Pink
+            } else {
+                ctx.fillStyle = "#18181b"; // Dark Aesthetic
+            }
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Grid 2 kolom x 2 baris
-                let coords = [
-                    {x: 60, y: 60},   {x: 520, y: 60},
-                    {x: 60, y: 520},  {x: 520, y: 520}
-                ];
+            // 2. Gambar 4 Foto dengan Sudut Melengkung (Rounded Corners)
+            let yOffset = 50;
+            let photoW = 520;
+            let photoH = 390;
+            let xOffset = 40;
 
-                photos.forEach((p, i) => {
-                    ctx.drawImage(p, coords[i].x, coords[i].y, 420, 315);
-                });
+            capturedPhotos.forEach((p, i) => {
+                ctx.save();
+                ctx.beginPath();
+                // Membuat sudut kotak foto melengkung (radius 15px)
+                ctx.roundRect(xOffset, yOffset + (i * 420), photoW, photoH, 15);
+                ctx.clip();
+                ctx.drawImage(p, xOffset, yOffset + (i * 420), photoW, photoH);
+                ctx.restore();
+            });
 
-                ctx.fillStyle = "#ec4899";
-                ctx.font = "bold 28px 'Segoe UI'";
-                ctx.textAlign = "center";
-                ctx.fillText("🌸 Sweet Moments 🌸", 500, 930);
+            // 3. Tambahkan Teks / Badge Estetik di Bagian Bawah
+            ctx.fillStyle = (theme === 'vintage') ? "#d7ccc8" : (theme === 'dark') ? "#f43f5e" : "#ec4899";
+            ctx.font = "bold 22px 'Segoe UI'";
+            ctx.textAlign = "center";
+            ctx.fillText("✨ Selfie Time Studio ✨", 300, 1780);
 
-            } else if (layout === 'triple3') {
-                // --- FORMAT 3: Minimalist Trio (3 Pose Vertikal Elegan) ---
-                canvas.width = 600; canvas.height = 1400;
-                ctx.fillStyle = "#fff1f2";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = "14px 'Segoe UI'";
+            ctx.fillStyle = (theme === 'vintage') ? "#a1887f" : "#888888";
+            ctx.fillText("Special Memories • 2026", 300, 1810);
 
-                photos.forEach((p, i) => {
-                    ctx.drawImage(p, 50, 50 + (i * 410), 500, 375);
-                });
-
-                ctx.fillStyle = "#ec4899";
-                ctx.font = "bold 24px 'Segoe UI'";
-                ctx.textAlign = "center";
-                ctx.fillText("💕 Memories 💕", 300, 1350);
+            // 4. Tambahkan Stiker / Asesoris di atas foto
+            if (accessory === 'ribbon') {
+                ctx.font = "30px sans-serif";
+                ctx.fillText("🎀", 80, 80);
+                ctx.fillText("💖", 520, 500);
+                ctx.fillText("🎀", 80, 920);
+            } else if (accessory === 'stars') {
+                ctx.font = "30px sans-serif";
+                ctx.fillText("⭐", 70, 70);
+                ctx.fillText("✨", 510, 480);
+                ctx.fillText("💫", 510, 1320);
             }
 
-            // Tampilkan hasil preview ke layar
+            // Update ke Layar & Link Download
             const dataUrl = canvas.toDataURL('image/png');
             finalImage.src = dataUrl;
             downloadLink.href = dataUrl;
-            downloadLink.download = 'my-cute-photobooth.png';
-            
-            resultArea.classList.remove('hidden');
-            resultArea.scrollIntoView({ behavior: 'smooth' });
+            downloadLink.download = 'my-pro-photobooth.png';
         }
 
         function resetPhotobooth() {
-            resultArea.classList.add('hidden');
+            editArea.classList.add('hidden');
+            captureControls.classList.remove('hidden');
         }
     </script>
 </body>
