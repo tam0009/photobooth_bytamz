@@ -8,10 +8,8 @@
     <style>
         body { background-color: #fdf2f8; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .pink-gradient { background: linear-gradient(135deg, #fbcfe8, #f9a8d4); }
-        
-        /* Trik agar kamera terlihat lebih jauh / Wide (tidak terlalu dekat/zoom) */
         .video-box { 
-            transform: scaleX(-1) scale(0.70); /* Diperkecil skalanya agar ruang tangkapan terlihat luas */
+            transform: scaleX(-1) scale(0.68); /* Diperkecil agar sudut pandang lebih luas / wide */
             transform-origin: center;
         }
     </style>
@@ -20,7 +18,7 @@
 
     <div class="max-w-md w-full bg-white p-6 rounded-3xl shadow-2xl border-4 border-pink-200 text-center">
         <h1 class="text-3xl font-bold text-pink-500 mb-2 tracking-tight">Photobooth By Tamz ✨</h1>
-        <p class="text-xs text-pink-400 mb-4">Pilih gaya bingkai & asesoris favoritmu!</p>
+        <p class="text-xs text-pink-400 mb-4">Pilih kolase, warna, & asesoris favoritmu!</p>
         
         <!-- Pilihan Kamera & Filter -->
         <div id="capture-controls" class="mb-3 text-left">
@@ -38,7 +36,7 @@
             </select>
         </div>
 
-        <!-- Area Kamera / Live Preview (Diperluas) -->
+        <!-- Area Live Preview Kamera -->
         <div class="relative overflow-hidden rounded-2xl bg-gray-900 aspect-[3/4] mb-4 shadow-inner flex items-center justify-center">
             <video id="video" autoplay playsinline class="w-full h-full object-contain video-box"></video>
             <div id="countdown" class="absolute inset-0 flex items-center justify-center text-7xl font-black text-white drop-shadow-md hidden bg-pink-500/30 backdrop-blur-[2px]">3</div>
@@ -49,27 +47,44 @@
             Mulai Foto (4 Pose) 📸
         </button>
 
-        <!-- Area Sesi Edit & Styling -->
+        <!-- Area Sesi Edit & Kolase -->
         <div id="edit-area" class="hidden mt-6 pt-4 border-t-2 border-pink-100 text-left">
             <h2 class="text-md font-bold text-pink-500 mb-3 text-center">Sesi Edit & Styling 🎨</h2>
             
             <div class="mb-3">
-                <label class="block text-xs font-semibold text-pink-600 mb-1">Pilih Bingkai / Kolase (5 Pilihan):</label>
+                <label class="block text-xs font-semibold text-pink-600 mb-1">Pilih Tema Kolase & Bingkai:</label>
                 <select id="theme-select" onchange="updatePreview()" class="w-full p-2.5 rounded-xl border border-pink-200 text-pink-600 bg-pink-50/50 text-sm focus:outline-none">
                     <option value="pink_strip">🎀 Soft Pink Strip (Classic)</option>
+                    <option value="polaroid_scrap">🤍 Polaroid Scrapbook (Tumpuk Aesthetic)</option>
+                    <option value="ticket_strip">🎟️ Ticket Barcode Style (Korean)</option>
                     <option value="vintage">🤎 Vintage Bookstore (Brown)</option>
                     <option value="dark">🖤 Dark Aesthetic (Cool)</option>
-                    <option value="polaroid">🤍 Polaroid White Style</option>
                     <option value="purple">💜 Lavender Dreamy</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="block text-xs font-semibold text-pink-600 mb-1">Pilih Warna Background:</label>
+                <select id="bg-color-select" onchange="updatePreview()" class="w-full p-2.5 rounded-xl border border-pink-200 text-pink-600 bg-pink-50/50 text-sm focus:outline-none">
+                    <option value="#fdf2f8">Soft Pink (Default)</option>
+                    <option value="#fef08a">Yellow (Kuning Ceria)</option>
+                    <option value="#bbf7d0">Green (Mint Hijau)</option>
+                    <option value="#fecdd3">Pink Manis</option>
+                    <option value="#fed7aa">Orange Hangat</option>
+                    <option value="#e9d5ff">Purple (Ungu Muda)</option>
+                    <option value="#bae6fd">Sky Blue (Biru Langit)</option>
+                    <option value="#1e3a8a">Galaxy Blue (Biru Dongker)</option>
+                    <option value="#9ca3af">Grey (Abu Elegan)</option>
                 </select>
             </div>
 
             <div class="mb-4">
                 <label class="block text-xs font-semibold text-pink-600 mb-1">Tambah Asesoris/Stiker:</label>
                 <select id="accessory-select" onchange="updatePreview()" class="w-full p-2.5 rounded-xl border border-pink-200 text-pink-600 bg-pink-50/50 text-sm focus:outline-none">
-                    <option value="ribbon">Pita & Hati Lucu (🎀 💖)</option>
-                    <option value="stars">Bintang Berkilau (⭐ ✨)</option>
-                    <option value="flowers">Bunga Cantik (🌸 🌷)</option>
+                    <option value="ribbon">Pita, Hati & Cinta (🎀 💖 ✨)</option>
+                    <option value="stars">Bintang & Kilau (⭐ 💫)</option>
+                    <option value="flowers">Bunga & Tulip (🌸 🌷)</option>
+                    <option value="kiss">Stiker Bibir & Cupid (💋 💘)</option>
                     <option value="none">Tanpa Stiker</option>
                 </select>
             </div>
@@ -204,69 +219,138 @@
             if (capturedPhotos.length === 0) return;
 
             const theme = document.getElementById('theme-select').value;
+            const bgColor = document.getElementById('bg-color-select').value;
             const accessory = document.getElementById('accessory-select').value;
 
             canvas.width = 600; 
             canvas.height = 1850;
 
-            // Tema Background Bingkai
-            if (theme === 'vintage') {
-                ctx.fillStyle = "#3e2723"; // Coklat Toko Buku
-            } else if (theme === 'dark') {
-                ctx.fillStyle = "#18181b"; // Dark Aesthetic
-            } else if (theme === 'polaroid') {
-                ctx.fillStyle = "#ffffff"; // Putih Bersih
-            } else if (theme === 'purple') {
-                ctx.fillStyle = "#2e1065"; // Lavender Ungu Gelap
-            } else {
-                ctx.fillStyle = "#fdf2f8"; // Soft Pink Strip
-            }
+            // Background Utama
+            ctx.fillStyle = bgColor;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            let yOffset = 50;
-            let photoW = 520;
-            let photoH = 390;
-            let xOffset = 40;
+            // Render Berdasarkan Tema Kolase
+            if (theme === 'polaroid_scrap') {
+                // Layout Polaroid Scrapbook (Miring-miring estetik ala referensi)
+                let coords = [
+                    {x: 40, y: 80, rot: -0.05},
+                    {x: 120, y: 500, rot: 0.03},
+                    {x: 50, y: 920, rot: -0.04},
+                    {x: 100, y: 1340, rot: 0.02}
+                ];
+                capturedPhotos.forEach((p, i) => {
+                    ctx.save();
+                    let c = coords[i];
+                    ctx.translate(c.x + 220, c.y + 180);
+                    ctx.rotate(c.rot);
+                    
+                    // Bingkai putih polaroid
+                    ctx.fillStyle = "#ffffff";
+                    ctx.shadowColor = "rgba(0,0,0,0.15)";
+                    ctx.shadowBlur = 15;
+                    ctx.fillRect(-220, -180, 440, 390);
+                    ctx.shadowBlur = 0;
 
-            // Gambar 4 Pose Foto
-            capturedPhotos.forEach((p, i) => {
-                ctx.save();
+                    // Foto dalam polaroid
+                    ctx.drawImage(p, -200, -160, 400, 300);
+
+                    // Teks kecil di bawah polaroid
+                    ctx.fillStyle = "#555555";
+                    ctx.font = "italic 16px 'Segoe UI'";
+                    ctx.textAlign = "center";
+                    ctx.fillText("me ♡ • pose 0" + (i+1), 0, 345);
+
+                    ctx.restore();
+                });
+            } else if (theme === 'ticket_strip') {
+                // Layout Tiket Korea dengan Barcode
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(50, 40, 500, 1770);
+                
+                // Header Barcode / Teks
+                ctx.fillStyle = "#18181b";
+                ctx.font = "bold 16px monospace";
+                ctx.textAlign = "center";
+                ctx.fillText("P H O T O B O O T H  B Y  T A M Z", 300, 80);
+                
+                // Gambar 4 Pose berjejer ke bawah
+                capturedPhotos.forEach((p, i) => {
+                    ctx.drawImage(p, 80, 110 + (i * 380), 440, 330);
+                });
+
+                // Garis putus-putus ala tiket
+                ctx.strokeStyle = "#d4d4d8";
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 6]);
                 ctx.beginPath();
-                ctx.roundRect(xOffset, yOffset + (i * 420), photoW, photoH, 15);
-                ctx.clip();
-                ctx.drawImage(p, xOffset, yOffset + (i * 420), photoW, photoH);
-                ctx.restore();
-            });
+                ctx.moveTo(70, 1650); ctx.lineTo(530, 1650);
+                ctx.stroke();
+                ctx.setLineDash([]);
 
-            // Teks Footer
-            ctx.fillStyle = (theme === 'polaroid') ? "#333333" : (theme === 'vintage') ? "#d7ccc8" : (theme === 'dark' || theme === 'purple') ? "#f43f5e" : "#ec4899";
-            ctx.font = "bold 22px 'Segoe UI'";
-            ctx.textAlign = "center";
-            ctx.fillText("✨ Photobooth By Tamz ✨", 300, 1780);
+                ctx.font = "bold 14px monospace";
+                ctx.fillStyle = "#71717a";
+                ctx.fillText("||| | |||| || | || |||", 300, 1720);
+                ctx.fillText("SPECIAL MEMORIES • 2026", 300, 1760);
+            } else {
+                // Layout Strip Standar (Pink Strip, Vintage, Dark, Purple)
+                if (theme === 'vintage') ctx.fillStyle = "#3e2723";
+                else if (theme === 'dark') ctx.fillStyle = "#18181b";
+                else if (theme === 'purple') ctx.fillStyle = "#2e1065";
+                else ctx.fillStyle = "#ffffff"; // Pink Strip frame background
 
-            ctx.font = "14px 'Segoe UI'";
-            ctx.fillStyle = (theme === 'polaroid') ? "#777777" : (theme === 'vintage') ? "#a1887f" : "#888888";
-            ctx.fillText("Special Memories • 2026", 300, 1810);
+                // Bingkai background strip tengah
+                ctx.fillRect(30, 30, 540, 1790);
 
-            // Stiker / Asesoris Pilihan
+                let yOffset = 60;
+                let photoW = 480;
+                let photoH = 360;
+                let xOffset = 60;
+
+                capturedPhotos.forEach((p, i) => {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.roundRect(xOffset, yOffset + (i * 390), photoW, photoH, 12);
+                    ctx.clip();
+                    ctx.drawImage(p, xOffset, yOffset + (i * 390), photoW, photoH);
+                    ctx.restore();
+                });
+
+                // Footer Teks
+                ctx.fillStyle = (theme === 'vintage' || theme === 'dark' || theme === 'purple') ? "#f43f5e" : "#db2777";
+                ctx.font = "bold 22px 'Segoe UI'";
+                ctx.textAlign = "center";
+                ctx.fillText("✨ Photobooth By Tamz ✨", 300, 1690);
+
+                ctx.font = "14px 'Segoe UI'";
+                ctx.fillStyle = "#888888";
+                ctx.fillText("Special Memories • 2026", 300, 1725);
+            }
+
+            // Asesoris / Stiker Tambahan
             if (accessory === 'ribbon') {
                 ctx.font = "35px sans-serif";
-                ctx.fillText("🎀", 80, 80);
-                ctx.fillText("💖", 520, 500);
-                ctx.fillText("🎀", 80, 920);
-                ctx.fillText("✨", 520, 1340);
+                ctx.fillText("🎀", 70, 70);
+                ctx.fillText("💖", 530, 480);
+                ctx.fillText("✨", 530, 1200);
+                ctx.fillText("🎀", 70, 1760);
             } else if (accessory === 'stars') {
                 ctx.font = "35px sans-serif";
                 ctx.fillText("⭐", 70, 70);
-                ctx.fillText("✨", 510, 480);
-                ctx.fillText("💫", 510, 1320);
-                ctx.fillText("⭐", 80, 1740);
+                ctx.fillText("✨", 520, 500);
+                ctx.fillText("💫", 520, 1300);
+                ctx.fillText("⭐", 70, 1760);
             } else if (accessory === 'flowers') {
                 ctx.font = "35px sans-serif";
-                ctx.fillText("🌸", 75, 75);
-                ctx.fillText("🌷", 515, 490);
-                ctx.fillText("🌸", 515, 1330);
-                ctx.fillText("🌷", 75, 1750);
+                ctx.fillText("🌸", 70, 70);
+                ctx.fillText("🌷", 520, 500);
+                ctx.fillText("🌸", 520, 1300);
+                ctx.fillText("🌷", 70, 1760);
+            } else if (accessory === 'kiss') {
+                ctx.font = "35px sans-serif";
+                ctx.fillText("💋", 70, 70);
+                ctx.fillText("💘", 520, 500);
+                ctx.fillText("💋", 520, 1300);
+                ctx.fillText("💘", 70, 1760);
             }
 
             const dataUrl = canvas.toDataURL('image/png');
